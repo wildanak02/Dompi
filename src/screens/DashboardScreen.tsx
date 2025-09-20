@@ -184,7 +184,7 @@ export default function DashboardScreen({
                 })
               )}
             </Card>
-            <Text style={{ color: theme.subtext, textAlign: 'center', marginTop: 12, paddingBottom: 20 }}>© Will Finance Tracker</Text>
+            <Text style={{ color: theme.subtext, textAlign: 'center', marginTop: 12, paddingBottom: 20 }}>© Dompi</Text>
           </View>
         }
       />

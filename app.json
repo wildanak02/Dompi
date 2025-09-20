@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "Will Expense Tracker",
-    "slug": "will-expense-tracker",
+    "name": "Dompi",
+    "slug": "dompi-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/images/logotok.png",
+    "icon": "./src/assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./src/assets/images/logo.png",
+      "image": "./src/assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -16,19 +16,19 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.will.expensetracker"
+      "bundleIdentifier": "com.dompi"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/images/logotok.png",
+        "foregroundImage": "./src/assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.will.expensetracker"
+      "package": "com.dompi"
     },
     "web": {
-      "favicon": "./src/assets/images/logotok.png"
+      "favicon": "./src/assets/images/icon.png"
     },
-    "scheme": "com.will.expensetracker",
+    "scheme": "com.dompi",
     "plugins": [
       "expo-router",
       "expo-web-browser"
@@ -39,8 +39,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "cfef8c2d-88a7-4224-b1c3-b55c9c6b9752"
+        "projectId": "ed3c975a-fa7c-4532-9812-41723c8c7ec4"
       }
-    }
+    },
+    "owner": "wildanak02"
   }
 }

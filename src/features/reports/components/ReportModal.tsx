@@ -139,7 +139,7 @@ export default function ReportModal({ visible, onClose, items, budgets }: Report
           </head>
           <body>
             <div class="header">
-              <h1>Will Finance Tracker</h1>
+              <h1>Dompi</h1>
               <h2>${t('reportFor')} ${periodStr}</h2>
             </div>
 
