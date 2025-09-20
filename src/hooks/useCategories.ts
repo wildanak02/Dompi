@@ -1,80 +1,68 @@
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { EXP_CAT_KEY, INC_CAT_KEY } from '@/constants/storageKeys';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES } from '@/constants/defaults';
+import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@root/firebase';
+import { addDoc, collection, doc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { useState } from 'react';
 
-/**
- * Custom hook untuk mengelola kategori pengeluaran dan pemasukan.
- * Memuat kategori dari storage, menyediakan nilai default jika tidak ada,
- * dan menawarkan fungsi untuk menambah, mengedit, dan menghapus kategori.
- */
 export function useCategories() {
-  const [expCats, setExpCats] = useState<string[]>([]);
-  const [incCats, setIncCats] = useState<string[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const { user } = useAuth();
+  const [expCats, setExpCats] = useState<string[]>(DEFAULT_EXPENSE_CATEGORIES);
+  const [incCats, setIncCats] = useState<string[]>(DEFAULT_INCOME_CATEGORIES);
 
-  // Efek untuk memuat kedua daftar kategori dari storage
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const rawExpCats = await AsyncStorage.getItem(EXP_CAT_KEY);
-        const rawIncCats = await AsyncStorage.getItem(INC_CAT_KEY);
-
-        setExpCats(rawExpCats ? JSON.parse(rawExpCats) : DEFAULT_EXPENSE_CATEGORIES);
-        setIncCats(rawIncCats ? JSON.parse(rawIncCats) : DEFAULT_INCOME_CATEGORIES);
-      } catch (error) {
-        console.error('Gagal memuat kategori dari storage', error);
-      } finally {
-        setLoaded(true);
-      }
-    };
-
-    loadCategories();
-  }, []);
-
-  // Efek untuk menyimpan kategori pengeluaran saat berubah
-  useEffect(() => {
-    if (loaded) {
-      AsyncStorage.setItem(EXP_CAT_KEY, JSON.stringify(expCats));
-    }
-  }, [expCats, loaded]);
-
-  // Efek untuk menyimpan kategori pemasukan saat berubah
-  useEffect(() => {
-    if (loaded) {
-      AsyncStorage.setItem(INC_CAT_KEY, JSON.stringify(incCats));
-    }
-  }, [incCats, loaded]);
-
-  const addCat = (kind: 'expense' | 'income', name: string) => {
+  const addCat = async (kind: 'expense' | 'income', name: string) => {
     const trimmedName = name?.trim();
-    if (!trimmedName) return;
+    if (!trimmedName || !user) return;
 
-    if (kind === 'expense') {
-      if (!expCats.includes(trimmedName)) setExpCats(prev => [...prev, trimmedName]);
-    } else {
-      if (!incCats.includes(trimmedName)) setIncCats(prev => [...prev, trimmedName]);
+    try {
+      await addDoc(collection(db, 'categories'), {
+        name: trimmedName,
+        type: kind,
+        userId: user.uid,
+      });
+      console.log(`[Firestore] Kategori '${trimmedName}' berhasil ditambahkan.`);
+    } catch (error) {
+      console.error("Gagal menambah kategori:", error);
     }
   };
 
-  const editCat = (kind: 'expense' | 'income', oldName: string, newName: string) => {
+  const editCat = async (kind: 'expense' | 'income', oldName: string, newName: string) => {
     const trimmedNewName = newName?.trim();
-    if (!trimmedNewName) return;
+    if (!trimmedNewName || !user) return;
 
-    if (kind === 'expense') {
-      setExpCats(prev => prev.map(c => (c === oldName ? trimmedNewName : c)));
-    } else {
-      setIncCats(prev => prev.map(c => (c === oldName ? trimmedNewName : c)));
+    try {
+      const q = query(collection(db, 'categories'), where('userId', '==', user.uid), where('name', '==', oldName), where('type', '==', kind));
+      const querySnapshot = await getDocs(q);
+
+      const batch = writeBatch(db);
+      querySnapshot.forEach(document => {
+        batch.update(doc(db, 'categories', document.id), { name: trimmedNewName });
+      });
+      await batch.commit();
+      console.log(`[Firestore] Kategori '${oldName}' berhasil diubah menjadi '${trimmedNewName}'.`);
+    } catch (error) {
+      console.error("Gagal mengedit kategori:", error);
     }
   };
 
-  const removeCat = (kind: 'expense' | 'income', name: string) => {
-    if (kind === 'expense') {
-      setExpCats(prev => prev.filter(c => c !== name));
-    } else {
-      setIncCats(prev => prev.filter(c => c !== name));
+  const removeCat = async (kind: 'expense' | 'income', name: string) => {
+    if (!user) return;
+    try {
+      const q = query(collection(db, 'categories'), where('userId', '==', user.uid), where('name', '==', name), where('type', '==', kind));
+      const querySnapshot = await getDocs(q);
+
+      const batch = writeBatch(db);
+      querySnapshot.forEach(document => {
+        batch.delete(doc(db, 'categories', document.id));
+      });
+      await batch.commit();
+      console.log(`[Firestore] Kategori '${name}' berhasil dihapus.`);
+    } catch (error) {
+      console.error("Gagal menghapus kategori:", error);
     }
   };
+  
+  const setAllExpCats = (cats: string[]) => setExpCats(cats.length > 0 ? cats : DEFAULT_EXPENSE_CATEGORIES);
+  const setAllIncCats = (cats: string[]) => setIncCats(cats.length > 0 ? cats : DEFAULT_INCOME_CATEGORIES);
 
-  return { expCats, incCats, addCat, editCat, removeCat, loaded };
+  return { expCats, incCats, addCat, editCat, removeCat, setAllExpCats, setAllIncCats };
 }

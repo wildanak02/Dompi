@@ -1,5 +1,5 @@
 // src/types/index.ts
-import { id, enUS } from 'date-fns/locale';
+import { enUS, id } from 'date-fns/locale';
 
 export interface Transaction {
   id: string;
@@ -44,4 +44,11 @@ export interface NotificationConfig {
   message: string;
   onConfirm?: () => void;
   onClose?: () => void;
+}
+
+export interface Category {
+  id: string; // ID dokumen dari Firestore
+  name: string;
+  type: 'income' | 'expense';
+  userId: string;
 }

@@ -1,24 +1,24 @@
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { auth } from '@root/firebase';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../../firebase'; // Pastikan path ini benar
 
-// Definisikan tipe untuk konteks
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  logout: async () => {},
 });
 
-// Custom hook untuk menggunakan konteks dengan mudah
 export const useAuth = () => {
   return useContext(AuthContext);
 };
 
-// Provider yang akan membungkus aplikasi
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,13 +28,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(currentUser);
       setLoading(false);
     });
-
-    return unsubscribe; // Cleanup listener
+    return unsubscribe;
   }, []);
+
+  const logout = async () => {
+    try {
+      await GoogleSignin.signOut();
+      await signOut(auth);
+      console.log("Pengguna berhasil logout dari Google & Firebase.");
+    } catch (error) {
+      console.error("Error saat logout:", error);
+    }
+  };
 
   const value = {
     user,
     loading,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

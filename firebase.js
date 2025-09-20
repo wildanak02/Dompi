@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 // Impor fungsi-fungsi baru untuk persistensi
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
 // Impor AsyncStorage yang baru diinstal
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -22,7 +21,9 @@ const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
-const db = getFirestore(app);
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
 
 export { auth, db };
 

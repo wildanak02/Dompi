@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Modal, SafeAreaView, View, Text, TextInput, Pressable, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, SafeAreaView, Text, TextInput, View } from 'react-native';
 
-import { useTheme } from '@/contexts/ThemeContext';
-import { useLocalization } from '@/contexts/LanguageContext';
 import Header from '@/components/common/Header';
+import { useLocalization } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CategoryManagerModalProps {
   kind: 'income' | 'expense';
   visible: boolean;
   onClose: () => void;
   list: string[];
-  addCat: (kind: 'income' | 'expense', name: string) => void;
-  editCat: (kind: 'income' | 'expense', oldName: string, newName: string) => void;
-  removeCat: (kind: 'income' | 'expense', name: string) => void;
+  addCat: (kind: 'income' | 'expense', name: string) => Promise<void>;
+  editCat: (kind: 'income' | 'expense', oldName: string, newName: string) => Promise<void>;
+  removeCat: (kind: 'income' | 'expense', name: string) => Promise<void>;
 }
 
 export default function CategoryManagerModal({
@@ -39,19 +39,34 @@ export default function CategoryManagerModal({
     setEditValue(name);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingCat && editValue.trim()) {
-      editCat(kind, editingCat, editValue.trim());
+      await editCat(kind, editingCat, editValue.trim());
     }
     setEditingCat(null);
     setEditValue('');
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (newName.trim()) {
-      addCat(kind, newName.trim());
+      await addCat(kind, newName.trim());
       setNewName('');
     }
+  };
+
+  const handleRemoveCategory = (name: string) => {
+    Alert.alert(
+      "Hapus Kategori",
+      `Apakah Anda yakin ingin menghapus kategori "${name}"? Ini tidak akan menghapus transaksi yang sudah ada.`,
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Hapus",
+          style: "destructive",
+          onPress: async () => await removeCat(kind, name),
+        },
+      ]
+    );
   };
 
   const renderCategoryItem = ({ item }: { item: string }) => {
@@ -99,7 +114,7 @@ export default function CategoryManagerModal({
               <Ionicons name="create-outline" size={22} color={theme.subtext} />
             </Pressable>
           )}
-          <Pressable onPress={() => removeCat(kind, item)} style={{ padding: 8 }}>
+          <Pressable onPress={() => handleRemoveCategory(item)} style={{ padding: 8 }}>
             <Ionicons name="trash-outline" size={22} color={theme.expense} />
           </Pressable>
         </View>
@@ -145,7 +160,7 @@ export default function CategoryManagerModal({
             <TextInput
               value={newName}
               onChangeText={setNewName}
-              placeholder={t('addCatPlaceholder', kind)}
+              placeholder={t('addCatPlaceholder', { kind: t(kind) })}
               placeholderTextColor={theme.subtext}
               style={{
                 flex: 1,

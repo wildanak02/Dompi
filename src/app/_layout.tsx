@@ -1,13 +1,13 @@
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'; // Impor AuthProvider dan useAuth
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import 'react-native-gesture-handler'; // Pastikan ini di baris pertama
+import 'react-native-gesture-handler'; // WAJIB DI BARIS PERTAMA
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Memisahkan logika navigasi ke komponen sendiri
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+
 const InitialLayout = () => {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -15,19 +15,14 @@ const InitialLayout = () => {
   const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    // Jika navigation belum siap, jangan lakukan apa-apa
-    if (!navigationState?.key) return;
+    if (!navigationState?.key || loading) return;
     
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (loading) {
-      // Masih loading, tidak ada redirect
-    } else if (!user && !inAuthGroup) {
-      // Jika tidak ada user dan tidak di grup auth, paksa ke login
+    if (!user && !inAuthGroup) {
       router.replace('/login');
     } else if (user && inAuthGroup) {
-      // Jika ada user tapi masih di halaman login/register, paksa ke halaman utama
-      router.replace('/');
+      router.replace('/success');
     }
   }, [user, segments, loading, navigationState]);
 
@@ -43,6 +38,7 @@ const InitialLayout = () => {
     <Stack>
       <Stack.Screen name="(app)" options={{ headerShown: false }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="success" options={{ headerShown: false }} />
     </Stack>
   );
 };
@@ -50,7 +46,7 @@ const InitialLayout = () => {
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider> {/* Membungkus semua dengan AuthProvider */}
+      <AuthProvider>
         <LanguageProvider>
           <ThemeProvider>
             <InitialLayout />

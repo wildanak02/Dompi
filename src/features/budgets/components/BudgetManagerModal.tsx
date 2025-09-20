@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, SafeAreaView, ScrollView, View, Text, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { Modal, Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLocalization } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Budget } from '@/types';
 import { currency } from '@/utils/format';
 
-import Header from '@/components/common/Header';
 import Card from '@/components/common/Card';
+import Header from '@/components/common/Header';
 
 // --- Sub-component: Modal for Editing a Single Budget ---
 interface EditBudgetModalProps {
@@ -39,7 +39,7 @@ function EditBudgetModal({ visible, onClose, cat, value, onSave }: EditBudgetMod
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 16 }}>
-        <Pressable style={{ backgroundColor: theme.card, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border }}>
+        <Pressable onPress={(e) => e.stopPropagation()} style={{ backgroundColor: theme.card, borderRadius: 16, padding: 20, borderWidth: 1, borderColor: theme.border }}>
           <Text style={{ color: theme.text, fontSize: 18, fontWeight: '700', marginBottom: 8 }}>{t('budget')}</Text>
           <Text style={{ color: theme.subtext, marginBottom: 16, fontSize: 16 }}>{cat}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card2, borderWidth: 1, borderColor: theme.border, borderRadius: 12, paddingHorizontal: 12 }}>
@@ -52,15 +52,12 @@ function EditBudgetModal({ visible, onClose, cat, value, onSave }: EditBudgetMod
               placeholderTextColor={theme.subtext}
               style={{ flex: 1, color: theme.text, paddingVertical: 14, fontSize: 16 }}
               autoFocus
+              onSubmitEditing={handleSave}
             />
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
-            <Pressable onPress={onClose} style={{ paddingVertical: 10, paddingHorizontal: 20, borderWidth: 1, borderColor: theme.border, borderRadius: 10 }}>
-              <Text style={{ color: theme.subtext, fontWeight: '600' }}>{t('cancel')}</Text>
-            </Pressable>
-            <Pressable onPress={handleSave} style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: theme.primary, borderRadius: 10 }}>
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{t('saveChanges')}</Text>
-            </Pressable>
+            <Pressable onPress={onClose} style={{ paddingVertical: 10, paddingHorizontal: 20, borderWidth: 1, borderColor: theme.border, borderRadius: 10 }}><Text style={{ color: theme.subtext, fontWeight: '600' }}>{t('cancel')}</Text></Pressable>
+            <Pressable onPress={handleSave} style={{ paddingVertical: 10, paddingHorizontal: 20, backgroundColor: theme.primary, borderRadius: 10 }}><Text style={{ color: '#fff', fontWeight: '700' }}>{t('saveChanges')}</Text></Pressable>
           </View>
         </Pressable>
       </Pressable>
@@ -80,8 +77,8 @@ function BudgetRowCompact({ cat, value, onEdit }: BudgetRowProps) {
   const { theme } = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.border }}>
-      <Text style={{ color: theme.text, fontSize: 16 }}>{cat}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Text style={{ color: theme.text, fontSize: 16, flex: 1 }} numberOfLines={1}>{cat}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginLeft: 8 }}>
         <Text style={{ color: theme.subtext, fontSize: 15 }}>{currency(value)}</Text>
         <Pressable
           onPress={onEdit}
@@ -108,7 +105,7 @@ interface BudgetManagerModalProps {
   onClose: () => void;
   cats: string[];
   budgets: Budget;
-  setBudget: (category: string, amount: number) => void;
+  setBudget: (category: string, amount: number) => Promise<void>;
 }
 
 export default function BudgetManagerModal({ visible, onClose, cats, budgets, setBudget }: BudgetManagerModalProps) {
@@ -120,9 +117,9 @@ export default function BudgetManagerModal({ visible, onClose, cats, budgets, se
     setEditingCat(category);
   };
 
-  const handleSaveBudget = (amount: number) => {
+  const handleSaveBudget = async (amount: number) => {
     if (editingCat) {
-      setBudget(editingCat, amount);
+      await setBudget(editingCat, amount);
     }
   };
 

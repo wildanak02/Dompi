@@ -1,76 +1,42 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Text, Switch, Image, Pressable, ActivityIndicator } from 'react-native';
-// ==================== PERBAIKAN DI SINI ====================
-import { Ionicons } from '@expo/vector-icons'; // <-- BARIS INI DITAMBAHKAN
-// ==========================================================
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
+import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
-import { useTheme } from '@/contexts/ThemeContext';
+import { DARK_THEME, LIGHT_THEME } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocalization } from '@/contexts/LanguageContext';
-import { useGoogleAuth } from '@/features/auth/hooks/useGoogleAuth';
-import { driveUploadJSON, driveDownloadJSON } from '@/api/googleDrive';
-import { censorEmail } from '@/utils/format';
-import { GOOGLE_G_PNG_URI } from '@/constants/config';
-import { LIGHT_THEME, DARK_THEME } from '@/constants/theme';
-import { Transaction, Budget } from '@/types';
+import { useTheme } from '@/contexts/ThemeContext';
 
 import SettingsRow from '@/components/common/SettingsRow';
 
+// Hapus semua props yang tidak lagi dibutuhkan karena sekarang diambil dari context/hooks
 interface SettingsScreenProps {
-  budgets: Budget;
-  setBudget: (category: string, amount: number) => void;
-  items: Transaction[];
-  expCats: string[];
-  incCats: string[];
-  setAllItems: (items: Transaction[]) => void;
-  addCat: (kind: 'expense' | 'income', name: string) => void;
-  editCat: (kind: 'expense' | 'income', oldName: string, newName: string) => void;
-  removeCat: (kind: 'expense' | 'income', name: string) => void;
-  showNotification: (config: any) => void;
   openModal: (modal: 'catIncome' | 'catExpense' | 'budget' | 'report' | 'language') => void;
 }
 
-export default function SettingsScreen({
-  budgets,
-  setBudget,
-  items,
-  expCats,
-  incCats,
-  setAllItems,
-  showNotification,
-  openModal,
-}: SettingsScreenProps) {
+export default function SettingsScreen({ openModal }: SettingsScreenProps) {
+  const { user, logout } = useAuth();
   const { theme, setTheme, isAutoTheme, setIsAutoTheme } = useTheme();
   const { t, lang } = useLocalization();
-  const { googleState, loginRequest, promptLogin, logout } = useGoogleAuth();
-  const [isBusy, setIsBusy] = useState(false);
 
-  const doBackup = async () => {
-    if (!googleState.token) return;
-    setIsBusy(true);
-    try {
-      await driveUploadJSON(googleState.token, { items, budgets, theme: theme.name, expCats, incCats });
-      showNotification({ type: 'success', title: t('backupSuccess'), message: t('backupSuccessMsg') });
-    } catch (e: any) {
-      showNotification({ type: 'error', title: t('backupError'), message: String(e.message || e) });
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  const doRestore = async () => {
-    if (!googleState.token) return;
-    setIsBusy(true);
-    try {
-      const data = await driveDownloadJSON(googleState.token);
-      if (data.items) setAllItems(data.items);
-      if (data.budgets) Object.entries(data.budgets).forEach(([k, v]) => setBudget(k, v as number));
-      if (data.theme) setTheme(data.theme === 'light' ? LIGHT_THEME : DARK_THEME);
-      showNotification({ type: 'success', title: t('restoreSuccess'), message: t('restoreSuccessMsg') });
-    } catch (e: any) {
-      showNotification({ type: 'error', title: t('restoreError'), message: String(e.message || e) });
-    } finally {
-      setIsBusy(false);
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      t('logout'), // Judul
+      "Apakah Anda yakin ingin keluar?", // Pesan (sesuaikan di file lokalisasi Anda jika perlu)
+      [
+        {
+          text: t('cancel'),
+          style: 'cancel',
+        },
+        {
+          text: t('logout'),
+          style: 'destructive',
+          // Panggil fungsi logout hanya jika pengguna menekan tombol "Logout"
+          onPress: () => logout(),
+        },
+      ]
+    );
   };
 
   return (
@@ -112,37 +78,7 @@ export default function SettingsScreen({
               rightContent={<Text style={{ color: theme.subtext, marginRight: 8 }}>{lang === 'id' ? 'Indonesia' : 'English'}</Text>}
             />
           </View>
-
-          {/* Data Management */}
-          <Text style={{ paddingHorizontal: 16, marginVertical: 8, marginTop: 24, color: theme.subtext, fontSize: 12, textTransform: 'uppercase' }}>Data</Text>
-          <View style={{ borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, marginHorizontal: 16 }}>
-            <SettingsRow
-              icon="cloud-outline"
-              label={t('backupRestore')}
-              rightContent={
-                googleState.token ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Image source={{ uri: GOOGLE_G_PNG_URI }} style={{ width: 18, height: 18 }} />
-                    <Text style={{ color: theme.subtext, fontSize: 12 }}>{censorEmail(googleState.email)}</Text>
-                  </View>
-                ) : null
-              }
-            />
-            {googleState.token ? (
-              <View style={{ flexDirection: 'row', gap: 10, padding: 16, backgroundColor: theme.card, alignItems: 'center' }}>
-                <Pressable onPress={doBackup} disabled={isBusy} style={({ pressed }) => ({ flex: 1, backgroundColor: theme.card2, paddingVertical: 10, borderRadius: 10, opacity: pressed || isBusy ? 0.7 : 1, alignItems: 'center' })}><Text style={{ color: theme.text, fontWeight: '700' }}>Backup</Text></Pressable>
-                <Pressable onPress={doRestore} disabled={isBusy} style={({ pressed }) => ({ flex: 1, backgroundColor: theme.card2, paddingVertical: 10, borderRadius: 10, opacity: pressed || isBusy ? 0.7 : 1, alignItems: 'center' })}><Text style={{ color: theme.text, fontWeight: '700' }}>Restore</Text></Pressable>
-                <Pressable onPress={logout} style={({ pressed }) => ({ padding: 8, opacity: pressed ? 0.8 : 1 })}><Ionicons name="log-out-outline" size={22} color={theme.expense} /></Pressable>
-              </View>
-            ) : (
-              <View style={{ padding: 16, backgroundColor: theme.card }}>
-                <Pressable disabled={!loginRequest || isBusy} onPress={() => promptLogin()} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: theme.border, paddingVertical: 10, borderRadius: 10, opacity: pressed || isBusy ? 0.7 : 1 })}>
-                  {isBusy ? <ActivityIndicator color={theme.text} /> : <Image source={{ uri: GOOGLE_G_PNG_URI }} style={{ width: 18, height: 18 }} />}
-                  <Text style={{ color: theme.text, fontWeight: '700' }}>{t('loginGoogle')}</Text>
-                </Pressable>
-              </View>
-            )}
-          </View>
+          
 
           {/* Customization */}
           <Text style={{ paddingHorizontal: 16, marginVertical: 8, marginTop: 24, color: theme.subtext, fontSize: 12, textTransform: 'uppercase' }}>{t('categories')}</Text>
@@ -158,6 +94,38 @@ export default function SettingsScreen({
             <SettingsRow icon="flag-outline" label={t('budget')} onPress={() => openModal('budget')} />
             <View style={{ height: 1, backgroundColor: theme.border, marginLeft: 58 }} />
             <SettingsRow icon="download-outline" label={t('downloadReport')} onPress={() => openModal('report')} />
+          </View>
+
+          {/* Cloud Sync */}
+          <Text style={{ paddingHorizontal: 16, marginVertical: 8, marginTop: 24, color: theme.subtext, fontSize: 12, textTransform: 'uppercase' }}>Cloud Sync</Text>
+          <View style={{ borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, marginHorizontal: 16 }}>
+            {user ? (
+              // Tampilan jika pengguna SUDAH LOGIN
+              <>
+                <SettingsRow
+                  icon="person-circle-outline"
+                  label={t('Account')}
+                  rightContent={<Text style={{ color: theme.subtext, fontSize: 12 }}>{user.email}</Text>}
+                />
+                <View style={{ height: 1, backgroundColor: theme.border, marginLeft: 58 }} />
+                <SettingsRow
+                  icon="log-out-outline"
+                  iconColor={theme.expense}
+                  label={t('logout')}
+                  labelColor={theme.expense}
+                  onPress={handleLogout}
+                />
+              </>
+            ) : (
+              // Tampilan jika pengguna BELUM LOGIN
+              <SettingsRow
+                icon="log-in-outline"
+                iconColor={theme.primary}
+                label={t('loginGoogle')}
+                labelColor={theme.primary}
+                onPress={() => router.replace('/login')}
+              />
+            )}
           </View>
         </View>
       </ScrollView>

@@ -2,6 +2,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { auth } from '@root/firebase';
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import React from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // Konfigurasi Google Sign-In Anda
@@ -11,28 +12,35 @@ GoogleSignin.configure({
 
 export default function LoginScreen() {
 
-  const handleGoogleSignIn = async () => {
+const handleGoogleSignIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const response = await GoogleSignin.signIn();
 
       // ==========================================================
-      // PERBAIKAN FINAL DI SINI
-      // Kita mengambil idToken langsung dari userInfo
+      // PERBAIKAN FINAL BERDASARKAN STRUKTUR DATA ASLI DARI LOG
       // ==========================================================
-      const idToken = userInfo.idToken;
+      
+      // 1. Ambil idToken dari response.data.idToken
+      const idToken = response.data?.idToken;
 
-      // Tambahkan pengecekan untuk memastikan idToken benar-benar ada
+      // 2. Pastikan idToken tidak kosong
       if (!idToken) {
-        throw new Error("Gagal mendapatkan idToken dari Google.");
+        throw new Error("Gagal mendapatkan idToken dari respons Google. Strukturnya tidak sesuai.");
       }
-
+      
       const googleCredential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(auth, googleCredential);
 
+      // Jika sampai di sini, semua proses berhasil.
+      // Navigasi ke dashboard akan ditangani secara otomatis.
+
     } catch (error: any) {
-      console.error("DETAIL ERROR:", JSON.stringify(error, null, 2));
-      if (error.code !== statusCodes.SIGN_IN_CANCELLED) {
+      console.error("DETAIL ERROR:", error);
+      
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // Pengguna membatalkan, tidak perlu menampilkan apa-apa
+      } else {
         Alert.alert('Login Gagal', `Terjadi kesalahan. Silakan coba lagi.`);
       }
     }
@@ -60,6 +68,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  // ... (styles Anda tetap sama)
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
