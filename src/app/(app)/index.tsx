@@ -1,24 +1,25 @@
 // src/app/index.tsx
-import React, { useState } from 'react';
-import { SafeAreaView, Modal, ScrollView, Pressable, Text, View } from 'react-native';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLocalization } from '@/contexts/LanguageContext';
-import { useTransactions } from '@/hooks/useTransactions';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useBudgets } from '@/hooks/useBudgets';
 import { useCategories } from '@/hooks/useCategories';
+import { useTransactions } from '@/hooks/useTransactions';
+import { NotificationConfig, Transaction } from '@/types';
 import { uid } from '@/utils/misc';
-import { Transaction, NotificationConfig } from '@/types';
+import React, { useState } from 'react';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import DashboardScreen from '@/screens/DashboardScreen';
-import TransactionsScreen from '@/screens/TransactionsScreen';
-import SettingsScreen from '@/screens/SettingsScreen';
-import TabBar from '@/navigation/TabBar';
 import Header from '@/components/common/Header';
-import TransactionForm from '@/features/transactions/components/TransactionForm';
 import NotificationModal from '@/components/feedback/NotificationModal';
-import CategoryManagerModal from '@/features/categories/components/CategoryManagerModal';
 import BudgetManagerModal from '@/features/budgets/components/BudgetManagerModal';
+import CategoryManagerModal from '@/features/categories/components/CategoryManagerModal';
 import ReportModal from '@/features/reports/components/ReportModal';
+import TransactionForm from '@/features/transactions/components/TransactionForm';
+import TabBar from '@/navigation/TabBar';
+import DashboardScreen from '@/screens/DashboardScreen';
+import SettingsScreen from '@/screens/SettingsScreen';
+import TransactionsScreen from '@/screens/TransactionsScreen';
 
 export default function AppRoot() {
   const { theme } = useTheme();

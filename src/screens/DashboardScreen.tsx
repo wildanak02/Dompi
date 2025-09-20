@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, FlatList, Platform, Modal, ScrollView, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { format, getYear, setYear, isSameMonth, parseISO } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { format, getYear, isSameMonth, parseISO, setYear } from 'date-fns';
+import React, { useState } from 'react';
+import { FlatList, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useTheme } from '@/contexts/ThemeContext';
 import { useLocalization } from '@/contexts/LanguageContext';
-import { Transaction, Budget } from '@/types';
-import { currency } from '@/utils/format';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useDashboard } from '@/features/dashboard/hooks/useDashboard';
+import { Budget, Transaction } from '@/types';
+import { currency } from '@/utils/format';
 
-import Card from '@/components/common/Card';
-import SectionTitle from '@/components/common/SectionTitle';
 import PieChart from '@/components/charts/PieChart';
+import Card from '@/components/common/Card';
 import FAB from '@/components/common/FAB';
+import SectionTitle from '@/components/common/SectionTitle';
 
 interface DashboardScreenProps {
   items: Transaction[];

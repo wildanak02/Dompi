@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1053427972070",
+    "project_id": "dompi-3bcf2",
+    "storage_bucket": "dompi-3bcf2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1053427972070:android:9eba43315cba3683294827",
+        "android_client_info": {
+          "package_name": "com.dompi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1053427972070-pqns18ljba4a3uor1mqnf0m57b4b642b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dompi",
+            "certificate_hash": "5dfd54ce67ce8a14dbcf694a43073fe5e7f0adb6"
+          }
+        },
+        {
+          "client_id": "1053427972070-4fc952ds5cr4h1fg1l0epjjnlli2c6ag.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe3eLaewho9M4KRao4MzK3n-HL6vJOYBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1053427972070-4fc952ds5cr4h1fg1l0epjjnlli2c6ag.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1053427972070-9a9gqq3ds53moub78vel9mvumjnk7r5l.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dompi.dompi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
